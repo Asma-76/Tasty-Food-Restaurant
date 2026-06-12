@@ -291,6 +291,157 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ==================== 8. Newsletter ====================
+  if (subscribeForm) {
+    subscribeForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = subEmail.value.trim();
+      if (!email || !email.includes('@')) {
+        showToast('Please enter a valid email address.', true);
+        return;
+      }
+      showToast(`📧 Thanks! ${email} has been subscribed!`);
+      subEmail.value = '';
+    });
+  }
 
+  // ==================== 9. Image Gallery (Lightbox) ====================
+  galleryItems.forEach(item => {
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', () => {
+      const img = item.querySelector('img');
+      if (!img) return;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999;
+        display: flex; align-items: center; justify-content: center; cursor: zoom-out;
+        animation: fadeInUp 0.3s ease;
+      `;
+      const bigImg = document.createElement('img');
+      bigImg.src = img.src;
+      bigImg.alt = img.alt;
+      bigImg.style.cssText = 'max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);';
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.cssText = `
+        position: absolute; top: 20px; right: 30px; background: none; color: #fff;
+        font-size: 2.5rem; border: none; cursor: pointer; font-family: sans-serif;
+        transition: color 0.2s;
+      `;
+      closeBtn.addEventListener('mouseover', () => closeBtn.style.color = '#ff0000');
+      closeBtn.addEventListener('mouseout', () => closeBtn.style.color = '#fff');
+      overlay.appendChild(bigImg);
+      overlay.appendChild(closeBtn);
+      document.body.appendChild(overlay);
+      document.body.style.overflow = 'hidden';
+      const remove = () => {
+        document.body.removeChild(overlay);
+        document.body.style.overflow = '';
+      };
+      overlay.addEventListener('click', remove);
+      closeBtn.addEventListener('click', (e) => { e.stopPropagation(); remove(); });
+    });
+  });
+
+  // ==================== 10. Scroll Reveal Effect ====================
+  const revealElements = document.querySelectorAll(
+    '.product-card, .category-item, .promo-card, .about-content, .gallery-item, .feedback-card, .news-card'
+  );
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealElements.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(25px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  // ==================== 11. Hero Image Parallax ====================
+  if (heroImage) {
+    window.addEventListener('scroll', () => {
+      const offset = window.scrollY * 0.15;
+      heroImage.style.transform = `translateY(${offset}px)`;
+    });
+  }
+
+  // ==================== 12. "View All" Button for Products ====================
+  const viewAllBtn = document.querySelector('.view-all-products-btn');
+  if (viewAllBtn) {
+    viewAllBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const allTab = Array.from(filterTabs).find(tab => tab.innerText.trim().toLowerCase() === 'all foods');
+      if (allTab) allTab.click();
+      showToast('🍽️ Showing all products');
+    });
+  }
+
+  // ==================== 13. Mobile Menu (Hamburger) ====================
+  const navLinksUl = document.querySelector('.nav-links');
+  const navbarDiv = document.querySelector('.navbar');
+  let hamburger = document.getElementById('hamburger');
+  if (navLinksUl && navbarDiv && !hamburger && window.innerWidth <= 992) {
+    hamburger = document.createElement('div');
+    hamburger.id = 'hamburger';
+    hamburger.className = 'hamburger';
+    hamburger.innerHTML = '<span></span><span></span><span></span>';
+    hamburger.style.cssText = `
+      display: flex; flex-direction: column; justify-content: space-between;
+      width: 28px; height: 20px; cursor: pointer; z-index: 1001;
+    `;
+    const spans = hamburger.querySelectorAll('span');
+    spans.forEach(span => {
+      span.style.cssText = `
+        width: 100%; height: 3px; background-color: white; border-radius: 3px;
+        transition: all 0.3s ease;
+      `;
+    });
+    const navRight = document.querySelector('.nav-right');
+    if (navRight) navbarDiv.insertBefore(hamburger, navRight);
+    else navbarDiv.appendChild(hamburger);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @media (max-width: 992px) {
+        .nav-links { position: fixed; top: 0; right: -280px; width: 260px; height: 100vh;
+          background: #111; flex-direction: column; padding: 80px 30px; gap: 25px;
+          transition: right 0.3s ease; z-index: 1000; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        .nav-links.open { right: 0; }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navLinksUl.classList.toggle('open');
+    });
+    navLinksUl.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navLinksUl.classList.remove('open');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!navbarDiv.contains(e.target) && navLinksUl.classList.contains('open')) {
+        hamburger.classList.remove('open');
+        navLinksUl.classList.remove('open');
+      }
+    });
+  }
+
+  // Initialize cart and final logs
+  updateCartUI();
+  console.log('✅ Tasty Foods fully loaded');
 
 });
+
+
