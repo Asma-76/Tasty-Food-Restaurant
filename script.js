@@ -163,5 +163,112 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  
+  // ==================== 3. Wishlist ====================
+  wishlistIcons.forEach(icon => {
+    icon.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = icon.querySelector('i');
+      const isActive = i.classList.contains('fas');
+      if (isActive) {
+        i.classList.remove('fas');
+        i.classList.add('far');
+        showToast('Removed from wishlist 💔');
+      } else {
+        i.classList.remove('far');
+        i.classList.add('fas');
+        i.style.color = '#ff0000';
+        showToast('Added to wishlist ❤️');
+      }
+    });
+  });
+
+  // ==================== 4. Product Filtering & "No Products" Message ====================
+  function assignCategories() {
+    productCards.forEach(card => {
+      const title = card.querySelector('h3')?.innerText.toLowerCase() || '';
+      let cat = 'other';
+      if (title.includes('burger')) cat = 'burger';
+      else if (title.includes('french fry')) cat = 'french fry';
+      else if (title.includes('pasta')) cat = 'pasta';
+      else if (title.includes('sandwich')) cat = 'sandwich';
+      else if (title.includes('cold drinks')) cat = 'cold drinks';
+      else if (title.includes('combo')) cat = 'combo';
+      card.dataset.category = cat;
+    });
+  }
+  assignCategories();
+
+  const productsGrid = document.querySelector('.products-grid');
+  let noProductsMsg = null;
+
+  function showNoProductsMessage(show, categoryName = '') {
+    if (show) {
+      if (!noProductsMsg) {
+        noProductsMsg = document.createElement('div');
+        noProductsMsg.className = 'no-products-msg';
+        productsGrid.parentElement.style.position = 'relative';
+      }
+      noProductsMsg.innerHTML = `🍕 No products available in "${categoryName}" category at the moment. Coming very soon!`;
+      if (!noProductsMsg.parentNode) productsGrid.insertAdjacentElement('afterend', noProductsMsg);
+      productsGrid.style.display = 'none';
+    } else {
+      if (noProductsMsg && noProductsMsg.parentNode) noProductsMsg.remove();
+      productsGrid.style.display = 'grid';
+    }
+  }
+
+  function filterProducts(category, displayName = '') {
+    let anyVisible = false;
+    productCards.forEach(card => {
+      const match = (category === 'all' || card.dataset.category === category);
+      card.style.display = match ? 'flex' : 'none';
+      if (match) anyVisible = true;
+    });
+    if (!anyVisible && category !== 'all') {
+      showNoProductsMessage(true, displayName || category);
+    } else {
+      showNoProductsMessage(false);
+    }
+  }
+
+  filterTabs.forEach(tab => {
+    const handler = () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      let filterText = tab.innerText.trim().toLowerCase();
+      let cat = 'all';
+      let displayCat = tab.innerText.trim();
+      if (filterText === 'burger') cat = 'burger';
+      else if (filterText === 'sandwich') cat = 'sandwich';
+      else if (filterText === 'cold drinks') cat = 'cold drinks';
+      else if (filterText === 'pasta') cat = 'pasta';
+      else if (filterText === 'combo') cat = 'combo';
+      else if (filterText === 'french fry') cat = 'french fry';
+      else if (filterText === 'pizza') cat = 'pizza';
+      else cat = 'all';
+      filterProducts(cat, displayCat);
+      if (cat !== 'all') showToast(`🔄 Showing ${displayCat}`);
+    };
+    tab.addEventListener('click', handler);
+  });
+  filterProducts('all');
+
+  // ==================== 5. Hide Header on Scroll Down ====================
+  let lastScrollTop = 0;
+  const scrollThreshold = 80;
+  if (mainHeader) {
+    window.addEventListener('scroll', () => {
+      let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      if (currentScroll > lastScrollTop && currentScroll > scrollThreshold) {
+        mainHeader.style.transform = 'translateY(-100%)';
+      } else if (currentScroll < lastScrollTop || currentScroll <= 10) {
+        mainHeader.style.transform = 'translateY(0)';
+      }
+      lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    });
+  }
+
+
 
 });
