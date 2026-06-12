@@ -270,5 +270,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
+  // ==================== 6. Back to Top Button ====================
+  window.addEventListener('scroll', () => {
+    if (backToTop) backToTop.classList.toggle('show', window.scrollY > 300);
+  });
+  if (backToTop) {
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  // ==================== 7. Smooth Anchor Links ====================
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+
 
 });
